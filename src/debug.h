@@ -1,0 +1,24 @@
+#ifndef DEBUG_H
+#define DEBUG_H
+
+#ifdef DEBUG_ENABLE
+#define DEBUG(x) x
+#else
+#define DEBUG(x)
+#endif
+
+#define LEVEL_ALL	0
+#define LEVEL_SUBPROBLEM  1
+#define LEVEL_PARSING_DIR 2
+#define LEVEL_CREATE_CHUNK 3
+#define LEVEL_CREATE_MD5  4
+#define LEVEL_UNION_SAME  5
+#define LEVEL_GET_EACH_CLUSTER_SIZE  6
+#define LEVEL_SIMILARITY  7
+#define LEVEL_OUTPUT_SIMI_FILE_CLUSTER 8
+#define LEVEL_DUPFILES 9
+#define LEVEL_FILE_MD5 10
+#define LEVEL_BREAKPOINTS 11
+#define LEVEL_BIN_PACKING 12
+
+#endif

@@ -1,0 +1,43 @@
+2009 8.14
+测试对象：46M的C000007文件夹，有8000个文件
+测试结果：
+   %   cumulative   self              self     total           
+ time   seconds     seconds    calls   s/call   s/call  name    
+ 20.24     12.04    12.04    15577160  0.00    0.00  SourceFile::getFingerprint(std::list<unsigned char, std::allocator<unsigned char> >&)
+ 18.56     23.08    11.04 1458118900   0.00  0.00  std::_List_const_iterator<unsigned char>::operator!=(std::_List_const_iterator<unsigned char> const&) const
+ 15.41     32.25     9.17   1428768362 0.00   0.00  std::_List_const_iterator<unsigned char>::operator++()
+                    					  …… …… ……  
+
+                        Call graph
+
+granularity: each sample hit covers 4 byte(s) for 0.02% of 59.49 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     99.9    0.00   59.44                 main [1]
+                0.97   57.07    8000/8000        SourceFile::createChunk() [2]
+                0.00    1.18       1/1           dealWithSubproblem(int) [19]
+                0.02    0.12    8000/8000        SourceFile::createMD5() [45]
+				……  ……  ……  ……
+测试评论：
+	根据gprof的结果，发现现在系统最主要的瓶颈还是在第一步生成chunk上，因为这一步完全没有过滤，纯粹是暴力地读取所有文件，算每个window的MD5，这样的工作量肯定是巨大的，甚至是最后处理子问题时、生成相似文件cluster时的n平方的算法的时间消耗也可以忽略了。
+
+计划：
+	首先改进读取语料库、生成chunk这一步，当耗时数量级和其他（如最后一步）差不多时再考虑改进其他。策略是：先扫一遍语料库，算整个文档的MD5，找出完全相同的文档，只留一份。然后再看效率是否有所提升。不过这之前先把文件名（包括路径）保存在数据库里。
+
+初步测试结果：
+src_size	meta_size	Partition?         D   	threshold	 DDASH   TMIN   TMAX  WIN_SIZE ClusterNum  FilesNum TotalTime  		  addPathTime		subProblem
+28M		726K			Y		80		0.7		40	  150     350	   28		  201		410		155s = 2.6m
+28M		726K			N		80		0.7		40	  150     350	   28		  201		410		128s = 2.1m
+56.2M	1.5M			Y		80		0.7		40	  150     350	   28		  408		984		586s = 9.7m
+56.2M	1.5M			N		80		0.7		40	  150     350	   28		  408		984		581s =9.7m
+78.5M	1.9M			Y		80		0.7		40	  150     350	   28		  563		1312	893s=14.9m
+78.5M	1.9M			N		80		0.7		40	  150     350	   28		  563		1312	1030s=17m
+107M	2.6M			Y		80		0.7		40	  150     350	   28		  730		1312	1669s=27.8m
+107M	2.6M			N		80		0.7		40	  150     350	   28		  730		1312	1731s=28.8m
+125M	2.9M			Y		80		0.7		40	  150     350	   28		  820		1862	2117s=35m
+125M	2.9M			N		80		0.7		40	  150     350	   28		  820		1862	2336s=39m		18.7s		 1572s=26M	
+149M	3.2M			Y		80		0.7		40	  150     350	   28		  920		2048	2694s=45m		76s			 1960s=32.7M
+
+			……
+结论：TMIN和TMAX动态调整，它们越大，则速度越快、精度越低，故文件大则调高，小则调低，平衡好速度和精度；WIN_SIZE越小，计算速度越快，太小了可能会导致样本空间太小；DDASH和D的影响暂不明了，貌似不大；threshold一般0.1即可
