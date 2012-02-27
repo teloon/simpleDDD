@@ -8,9 +8,11 @@
 
 # Environment requirement
 __Platform__:
+
 >Linux(originally on ubuntu 8.04)
 
 __dependency__:
+
 >1. __tokyo__ cabinet：[how to install][tc]
 >2. the __filesystem__ module of boost 1.39: [how to install][boost]
 >3. __gcc__, __g++__: you should change the makefile according to the version of gcc you use, i.e. change the "__43__" in "-lboost_filesystem-gcc43-mt" to the version number of your gcc
