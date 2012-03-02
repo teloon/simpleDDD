@@ -60,3 +60,4 @@ Change the value of parameter "DEBUG_LEVEL" and run `./bat_debug.sh` to compile.
 2. Run `gdb main`.
 
 3. profiling: run `./main`. After the program ends, run `gprof gmon.out`.
+
